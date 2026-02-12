@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-    <title>Advanced Urdu & Arabic Editor</title>
+    <title>Urdu Kaatib by HashTech</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Amiri:wght@400;700&family=Lateef&family=Scheherazade+New:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap" rel="stylesheet">
     
@@ -649,7 +649,18 @@
                 localStorage.removeItem('my_urdu_doc_v4');
                 currentLoadedProject = null;
             }
-        }
-    </script>
+                }
+}
+
+// Service Worker Registration for 100% Offline Support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Urdu Kaatib: Offline Ready!', reg.scope))
+            .catch(err => console.log('Service Worker Error:', err));
+    });
+}
+</script>
+
 </body>
 </html>
