@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+    <title>Advanced Urdu & Arabic Editor</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Amiri:wght@400;700&family=Lateef&family=Scheherazade+New:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            background-color: #eef1f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Container */
+        .sidebar-container {
+            position: fixed;
+            left: 5px;
+            top: 5px;
+            bottom: 5px;
+            width: 75px; 
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 10px 4px;
+            z-index: 2000;
+            overflow-y: auto;
+            align-items: center;
+        }
+
+        /* Selection Section - Dark Theme (Top) */
+        .selection-tools {
+            background: #34495e;
+            padding: 8px 4px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            align-items: center;
+            color: white;
+            order: 1; 
+        }
+
+        /* Main Tools Section - Colorful (Middle) */
+        .main-tools {
+            background: #f0f4ff; 
+            padding: 8px 4px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 90%;
+            align-items: center;
+            order: 2; 
+            border: 1px solid #d1d9e6;
+        }
+
+        /* Border Tool Section Styling - Position 4 */
+        .border-tools {
+            background: #fff4e6; 
+            padding: 8px 4px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 90%;
+            align-items: center;
+            order: 4; 
+            border: 1px solid #f9dcc4;
+        }
+
+        /* Header Title Section - Absolute Last Position */
+        .header-tools {
+            background: #e3f2fd; 
+            padding: 8px 4px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 90%;
+            align-items: center;
+            order: 5;
+            border: 1px solid #bbdefb;
+            margin-bottom: 10px;
+        }
+
+        hr { order: 3; width: 70%; border: 0; border-top: 1px solid #ddd; }
+
+        .tool-item { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%; }
+        label { font-size: 9px; font-weight: bold; color: #555; }
+        .selection-tools label { color: #ecf0f1; }
+
+        select, input, button {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 10px;
+            width: 90%;
+            text-align: center;
+        }
+
+        button { cursor: pointer; background: #ffffff; transition: 0.2s; border: 1px solid #ddd; }
+        button:hover { background: #f0f0f0; }
+
+        .btn-arabic { background: #6c5ce7; color: white; border: none; font-weight: bold; font-size: 8px; padding: 5px 2px; }
+        .btn-arb-clr { background: #e67e22; color: white; border: none; font-weight: bold; font-size: 8px; padding: 5px 2px; margin-top: 2px; }
+        .btn-pdf { background: #1a73e8; color: white; border: none; font-size: 9px; }
+        .btn-clear { background: #d93025; color: white; border: none; font-size: 9px; }
+        .btn-project { background: #27ae60; color: white; border: none; font-size: 9px; }
+        .btn-file { background: #2980b9; color: white; border: none; font-size: 9px; }
+
+        /* Input Area Container */
+        #editor-container {
+            flex: 1;
+            margin-left: 85px; 
+            margin-right: 10px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            background: white;
+            min-height: calc(100vh - 35px);
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden; 
+        }
+
+        /* Watermark Running Header - Increased Visibility */
+        #page-header-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px; 
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.12); /* Thoda zyada dark kiya takay nazar aaye */
+            z-index: 0; 
+            pointer-events: none; 
+            white-space: nowrap;
+            text-align: center;
+            width: 100%;
+            user-select: none;
+        }
+
+        /* Navigation Arrows */
+        .nav-arrows {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 3000;
+        }
+
+        .nav-arrows button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            opacity: 0.8;
+        }
+
+        #editor {
+            flex: 1;
+            padding: 2mm; 
+            outline: none;
+            font-size: 18px; 
+            line-height: 2.0;
+            text-align: justify; 
+            width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            border: 0px solid #000;
+            box-sizing: border-box;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
+            position: relative;
+            z-index: 1; 
+            background: transparent; 
+        }
+
+        .auto-arabic {
+            font-family: 'Scheherazade New', serif !important;
+            font-size: 1.3em;
+            line-height: 1.5;
+            color: #2c3e50;
+            display: inline-block;
+            direction: rtl;
+        }
+
+        .sidebar-container button {
+            min-height: 32px;
+            font-weight: bold;
+        }
+
+        .scroll-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center; gap: 5px; border-top: 1px solid #555; padding-top: 8px; width: 100%;
+        }
+
+        .selection-label { font-size: 8px; text-align: center; color: #7f8c8d; font-weight: bold; }
+        .font-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 100%; }
+        .font-btn { font-size: 7px; padding: 2px; background: #2c3e50; color: white; }
+
+        @media print {
+            @page { 
+                margin: 5mm; 
+            }
+            body { background: white; }
+            .sidebar-container, .nav-arrows { display: none !important; }
+            #editor-container { margin: 0; width: 100%; box-shadow: none; overflow: visible; }
+            #editor {
+                padding: 3mm;
+                border-width: inherit; 
+                display: block;
+                overflow: visible;
+                min-height: 275mm;
+                width: 100% !important;
+            }
+            #page-header-title {
+                display: block;
+                position: fixed; 
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-30deg); 
+                font-size: 100px;
+                color: rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar-container { width: 60px; }
+            #editor-container { margin-left: 70px; }
+            #editor { padding: 5px; font-size: 16px; }
+            #page-header-title { font-size: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-container">
+        <div class="selection-tools" id="bottomBar">
+            <span class="selection-label">منتخب متن</span>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; width:100%;">
+                <button onmousedown="saveSel(); event.preventDefault();" onclick="changeSelectionSize(2)">+</button>
+                <button onmousedown="saveSel(); event.preventDefault();" onclick="changeSelectionSize(-2)">−</button>
+            </div>
+            <div class="font-btn-grid">
+                <button class="font-btn" onmousedown="saveSel(); event.preventDefault();" onclick="applySelectionOnlyStyle('fontName', 'Noto Nastaliq Urdu')">نستعلیق</button>
+                <button class="font-btn" onmousedown="saveSel(); event.preventDefault();" onclick="applySelectionOnlyStyle('fontName', 'Amiri')">Amiri</button>
+                <button class="font-btn" onmousedown="saveSel(); event.preventDefault();" onclick="applySelectionOnlyStyle('fontName', 'Lateef')">Lateef</button>
+                <button class="font-btn" onmousedown="saveSel(); event.preventDefault();" onclick="applySelectionOnlyStyle('fontName', 'Scheherazade New')">Arabic</button>
+            </div>
+            <input type="color" title="رنگ" onmousedown="saveSel()" onchange="applySelectionOnlyStyle('foreColor', this.value)" style="width:30px; height:30px; padding:0; cursor:pointer;">
+            <div class="scroll-control">
+                <span class="selection-label">اسکرول</span>
+                <button id="scrollBtn" onclick="toggleAutoScroll()" style="background: #27ae60; font-size: 12px; color: white; width: 35px;">▶</button>
+                <input type="range" id="scrollSpeed" min="1" max="10" value="2" style="width: 40px;">
+            </div>
+        </div>
+
+        <div class="main-tools">
+            <span class="selection-label">اصلی ٹولز</span>
+            <div class="tool-item">
+                <label>فونٹ</label>
+                <select id="fontFamily" onchange="applyStyle('fontName', this.value)">
+                    <option value="'Noto Nastaliq Urdu'">نستعلیق</option>
+                    <option value="'Lateef'">Lateef</option>
+                    <option value="'Amiri'">Amiri</option>
+                    <option value="'Scheherazade New'">Arabic</option>
+                </select>
+            </div>
+            <div class="tool-item">
+                <label>سائز</label>
+                <input type="number" id="fontSizeInput" value="16" min="10" max="100" oninput="applyFontSize(this.value)">
+            </div>
+            <div class="tool-item">
+                <label>رنگ</label>
+                <input type="color" onchange="applyStyle('foreColor', this.value)" style="height:25px; padding: 2px;">
+            </div>
+            
+            <hr style="width:80%; margin: 5px 0; border-top: 1px solid #ddd; order: 0;">
+            <div class="tool-item">
+                <label>عربی رنگ</label>
+                <input type="color" id="arbPicker" value="#2c3e50" style="height:22px; padding: 1px; width: 80%;">
+                <button class="btn-arb-clr" onclick="changeOnlyArabicColor()">رنگ بدلیں</button>
+            </div>
+
+            <button onclick="applyStyle('bold')">B</button>
+            <button onclick="applyStyle('underline')">U</button>
+            <button class="btn-arabic" onclick="detectAndFormatArabic()">Auto Arabic</button>
+            <button class="btn-project" onclick="saveInternalProject()">Save Project</button>
+            <button class="btn-project" onclick="loadInternalProject()">Load Data</button>
+            <button class="btn-file" onclick="exportProjectToFile()">Export File</button>
+            <button class="btn-file" onclick="importProjectFromFile()">Import File</button>
+            <button class="btn-pdf" onclick="window.print()">PDF</button>
+            <button class="btn-clear" onclick="clearData()">Clear</button>
+        </div>
+
+        <hr>
+
+        <div class="border-tools">
+            <span class="selection-label" style="color:#333;">بارڈر سیٹنگ</span>
+            <select id="borderStyle" onchange="updateBorder()">
+                <option value="none">کوئی نہیں</option>
+                <option value="solid">Solid</option>
+                <option value="double">Double</option>
+                <option value="dotted">Dotted</option>
+                <option value="dashed">Dashed</option>
+                <option value="groove">Groove</option>
+            </select>
+            <input type="number" id="borderWidth" value="2" min="1" max="20" title="موٹائی" oninput="updateBorder()" style="width:85%;">
+            <input type="color" id="borderColor" value="#000000" onchange="updateBorder()" style="height:25px; padding:0;">
+        </div>
+
+        <div class="header-tools">
+            <span class="selection-label" style="color:#333;">ٹائٹل (Header)</span>
+            <input type="text" id="headerInput" placeholder="ٹائٹل لکھیں..." oninput="updateHeader(this.value)" style="width:85%; font-size: 8px;">
+        </div>
+    </div>
+
+    <div id="editor-container">
+        <div id="page-header-title"></div>
+
+        <div class="nav-arrows">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Page Start">↑</button>
+            <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="Page End">↓</button>
+        </div>
+
+        <div id="editor" contenteditable="true" oninput="debouncedSave()" onkeydown="handleEnter(event)">
+            اب آپ اپنا ڈیٹا فائل کی صورت میں Export اور Import کر سکتے ہیں۔
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" style="display:none" accept=".json">
+
+    <script>
+        let scrollInterval = null;
+        let isScrolling = false;
+        let saveTimeout = null;
+        let currentLoadedProject = null; 
+
+        function debouncedSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveData, 500);
+        }
+
+        function handleEnter(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                document.execCommand('insertLineBreak');
+                debouncedSave();
+            }
+        }
+
+        function updateHeader(val) {
+            document.getElementById('page-header-title').innerText = val;
+            saveData();
+        }
+
+        function toggleAutoScroll() {
+            const btn = document.getElementById('scrollBtn');
+            const speedInput = document.getElementById('scrollSpeed');
+            if (!isScrolling) {
+                isScrolling = true;
+                btn.innerText = "||";
+                btn.style.background = "#e67e22";
+                scrollInterval = setInterval(() => { window.scrollBy(0, 1); }, 50 / speedInput.value);
+            } else {
+                isScrolling = false;
+                btn.innerText = "▶";
+                btn.style.background = "#27ae60";
+                clearInterval(scrollInterval);
+            }
+        }
+
+        function updateBorder() {
+            const editor = document.getElementById('editor');
+            const style = document.getElementById('borderStyle').value;
+            const width = document.getElementById('borderWidth').value;
+            const color = document.getElementById('borderColor').value;
+            
+            editor.style.borderStyle = style;
+            editor.style.borderWidth = width + "px";
+            editor.style.borderColor = color;
+            saveData();
+        }
+
+        function detectAndFormatArabic() {
+            const editor = document.getElementById('editor');
+            let text = editor.innerText;
+            const arabicRegex = /([^\s]*[\u064B-\u0652]+[^\s]*)/g;
+            const formatted = text.replace(arabicRegex, function(match) {
+                return `<span class="auto-arabic">${match}</span>`;
+            });
+            editor.innerHTML = formatted;
+            saveData();
+        }
+
+        function changeOnlyArabicColor() {
+            const color = document.getElementById('arbPicker').value;
+            const arabicSpans = document.querySelectorAll('.auto-arabic');
+            arabicSpans.forEach(span => {
+                span.style.color = color;
+            });
+            saveData();
+        }
+
+        let lastSelection = null;
+        document.getElementById('editor').addEventListener('keyup', saveSel);
+        document.getElementById('editor').addEventListener('mouseup', saveSel);
+        
+        function saveSel() {
+            const sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                lastSelection = sel.getRangeAt(0).cloneRange();
+            }
+        }
+
+        function applySelectionOnlyStyle(command, value) {
+            if (!value) return;
+            const ed = document.getElementById('editor');
+            ed.focus();
+            if (lastSelection) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(lastSelection);
+            }
+            document.execCommand(command, false, value);
+            saveData();
+        }
+
+        function applyStyle(command, value = null) {
+            try {
+                const selection = window.getSelection();
+                if (selection.toString().length > 0) {
+                    document.execCommand(command, false, value);
+                } else {
+                    const ed = document.getElementById('editor');
+                    if (command === 'fontName') ed.style.fontFamily = value;
+                    if (command === 'foreColor') ed.style.color = value;
+                    if (command === 'bold') ed.style.fontWeight = ed.style.fontWeight === 'bold' ? 'normal' : 'bold';
+                    if (command === 'underline') ed.style.textDecoration = ed.style.textDecoration === 'underline' ? 'none' : 'underline';
+                }
+                saveData();
+            } catch (e) {}
+        }
+
+        function applyFontSize(size) {
+            const selection = window.getSelection();
+            if (selection.toString().length > 0) {
+                document.execCommand("fontSize", false, "7");
+                const spans = document.getElementsByTagName("font");
+                for (let i = 0; i < spans.length; i++) {
+                    if (spans[i].size == "7") {
+                        spans[i].removeAttribute("size");
+                        spans[i].style.fontSize = size + "px";
+                    }
+                }
+            } else {
+                document.getElementById('editor').style.fontSize = size + "px";
+            }
+            saveData();
+        }
+
+        function changeSelectionSize(step) {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0 && selection.toString().length > 0) {
+                const range = selection.getRangeAt(0);
+                let container = range.commonAncestorContainer;
+                if (container.nodeType === 3) container = container.parentElement;
+                let currentSize = parseInt(window.getComputedStyle(container).fontSize);
+                let newSize = currentSize + step;
+                document.execCommand("fontSize", false, "7"); 
+                const fonts = document.getElementsByTagName("font");
+                for (let i = 0; i < fonts.length; i++) {
+                    if (fonts[i].size == "7") {
+                        fonts[i].removeAttribute("size");
+                        fonts[i].style.fontSize = newSize + "px";
+                    }
+                }
+                saveData();
+            }
+        }
+
+        function exportProjectToFile() {
+            const data = {
+                html: document.getElementById('editor').innerHTML,
+                border: {
+                    style: document.getElementById('borderStyle').value,
+                    width: document.getElementById('borderWidth').value,
+                    color: document.getElementById('borderColor').value
+                },
+                header: document.getElementById('headerInput').value
+            };
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (currentLoadedProject || 'urdu_project') + ".json";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importProjectFromFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    const editor = document.getElementById('editor');
+                    editor.innerHTML = data.html;
+                    if (data.border) {
+                        document.getElementById('borderStyle').value = data.border.style;
+                        document.getElementById('borderWidth').value = data.border.width;
+                        document.getElementById('borderColor').value = data.border.color;
+                        updateBorder();
+                    }
+                    if (data.header) {
+                        document.getElementById('headerInput').value = data.header;
+                        updateHeader(data.header);
+                    }
+                    alert("فائل کامیابی سے لوڈ ہو گئی۔");
+                    saveData();
+                } catch(err) { alert("Invalid File Format!"); }
+            };
+            reader.readAsText(file);
+        });
+
+        function saveInternalProject() {
+            let fileName = currentLoadedProject;
+            if (!fileName) {
+                fileName = prompt("پروجیکٹ کا نام لکھیں:");
+                if (!fileName) return;
+            } else {
+                let confirmUpdate = confirm("کیا آپ موجودہ پروجیکٹ '" + fileName + "' کو اپڈیٹ کرنا چاہتے ہیں؟");
+                if (!confirmUpdate) {
+                    fileName = prompt("نیا نام لکھیں:", fileName);
+                    if (!fileName) return;
+                }
+            }
+            try {
+                const content = document.getElementById('editor').innerHTML;
+                const borderData = {
+                    style: document.getElementById('borderStyle').value,
+                    width: document.getElementById('borderWidth').value,
+                    color: document.getElementById('borderColor').value
+                };
+                const headerText = document.getElementById('headerInput').value;
+                let projects = JSON.parse(localStorage.getItem('urdu_projects_list') || '{}');
+                projects[fileName] = { html: content, border: borderData, header: headerText };
+                localStorage.setItem('urdu_projects_list', JSON.stringify(projects));
+                currentLoadedProject = fileName;
+                alert("محفوظ کر لیا گیا۔");
+            } catch (e) { alert("Storage full!"); }
+        }
+
+        function loadInternalProject() {
+            try {
+                const projects = JSON.parse(localStorage.getItem('urdu_projects_list') || '{}');
+                const projectNames = Object.keys(projects);
+                if (projectNames.length === 0) { alert("No saved projects."); return; }
+                let message = "پروجیکٹ کا نمبر لکھیں:\n\n";
+                projectNames.forEach((name, index) => { message += (index + 1) + ". " + name + "\n"; });
+                const choice = prompt(message);
+                if (choice) {
+                    const index = parseInt(choice) - 1;
+                    const selectedName = projectNames[index];
+                    const data = projects[selectedName];
+                    if (data) {
+                        const editor = document.getElementById('editor');
+                        editor.innerHTML = data.html || data;
+                        if (data.border) {
+                            document.getElementById('borderStyle').value = data.border.style;
+                            document.getElementById('borderWidth').value = data.border.width;
+                            document.getElementById('borderColor').value = data.border.color;
+                            updateBorder();
+                        }
+                        if (data.header) {
+                            document.getElementById('headerInput').value = data.header;
+                            updateHeader(data.header);
+                        }
+                        currentLoadedProject = selectedName;
+                        saveData();
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function saveData() {
+            try {
+                const data = {
+                    html: document.getElementById('editor').innerHTML,
+                    border: {
+                        style: document.getElementById('borderStyle').value,
+                        width: document.getElementById('borderWidth').value,
+                        color: document.getElementById('borderColor').value
+                    },
+                    header: document.getElementById('headerInput').value
+                };
+                localStorage.setItem('my_urdu_doc_v4', JSON.stringify(data));
+            } catch (e) {}
+        }
+
+        window.onload = function() {
+            const savedRaw = localStorage.getItem('my_urdu_doc_v4');
+            if (savedRaw) {
+                try {
+                    const data = JSON.parse(savedRaw);
+                    document.getElementById('editor').innerHTML = data.html;
+                    if (data.border) {
+                        document.getElementById('borderStyle').value = data.border.style;
+                        document.getElementById('borderWidth').value = data.border.width;
+                        document.getElementById('borderColor').value = data.border.color;
+                        updateBorder();
+                    }
+                    if (data.header) {
+                        document.getElementById('headerInput').value = data.header;
+                        updateHeader(data.header);
+                    }
+                } catch(e) { document.getElementById('editor').innerHTML = savedRaw; }
+            }
+        }
+
+        function clearData() {
+            if(confirm("کیا آپ سارا کام مٹانا چاہتے ہیں؟")) {
+                document.getElementById('editor').innerHTML = "";
+                document.getElementById('borderStyle').value = "none";
+                document.getElementById('headerInput').value = "";
+                updateHeader("");
+                updateBorder();
+                localStorage.removeItem('my_urdu_doc_v4');
+                currentLoadedProject = null;
+            }
+        }
+    </script>
+</body>
+</html>
