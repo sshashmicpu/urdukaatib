@@ -1,4 +1,4 @@
-const CACHE_NAME = 'urdu-kaatib-v1';
+const CACHE_NAME = 'urdu-kaatib-v1.0.1';
 const FILES_TO_CACHE = [
   './',
   './index.html',
