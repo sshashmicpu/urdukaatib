@@ -619,7 +619,15 @@
             } catch (e) {}
         }
 
-        window.onload = function() {
+                window.onload = function() {
+            // Service Worker Registration for 100% Offline Support
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker Registered Successfully!', reg))
+                .catch(err => console.error('Service Worker Registration Failed!', err));
+            }
+
+            // Existing Load Data Logic
             const savedRaw = localStorage.getItem('my_urdu_doc_v4');
             if (savedRaw) {
                 try {
